@@ -25,16 +25,17 @@ class LLamaChatPDF:
     chain = None
 
     def __init__(self):
-        self.model = ChatOllama(model="llama2")
+        self.model = ChatOllama(model="llama2", temperature = 0)
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100)
-        self.prompt_template = """Given this text extracts:
+        self.prompt_template = """
+                            Given this text extracts:
                             -----
                             {context}
                             -----
                             Please answer the following question:
                             {query}
                             -----
-                            And Citation: """
+                            """
                             
         self.prompt = PromptTemplate(
             template = self.prompt_template,
