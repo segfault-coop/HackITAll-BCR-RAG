@@ -15,13 +15,11 @@ class ChatPDF:
     chain = None
 
     def __init__(self):
-        self.model = ChatOllama(model="mistral")
+        self.model = ChatOllama(model="llama2")
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100)
         self.prompt = PromptTemplate.from_template(
             """
-            <s> [INST] Vous êtes un assistant pour les tâches de réponse aux questions. Utilisez les éléments de contexte suivants pour répondre à la question. 
-            Si vous ne connaissez pas la réponse, dites simplement que vous ne savez pas.. Utilisez trois phrases
-             maximum et soyez concis dans votre réponse. [/INST] </s> 
+            <s> [INST] You are a teaching assistant for the course of programming languages. You will only provide relevant answers to the question [/INST] </s> 
             [INST] Question: {question} 
             Context: {context} 
             Answer: [/INST]
@@ -40,13 +38,11 @@ class ChatPDF:
         self.retriever = vector_store.as_retriever(
             search_type="similarity_score_threshold",
             search_kwargs={
-                "k": 5,
-                "score_threshold": 0.3
+                "k": 10,
+                "score_threshold": 0.7
             },
         )
-        
         print("DEBUG: retriever", self.retriever)
-
         self.chain = ({"context": self.retriever, "question": RunnablePassthrough()}
                       | self.prompt
                       | self.model
@@ -55,7 +51,6 @@ class ChatPDF:
     def ask(self, query: str):
         if not self.chain:
             return "Please, add a PDF document first."
-
         return self.chain.invoke(query)
 
     def clear(self):
