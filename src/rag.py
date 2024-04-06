@@ -16,6 +16,9 @@ from langchain_community.document_transformers import (
     LongContextReorder,
 )
 
+def format_docs(docs):
+    return " ".join([f"{doc['content']}\n" for doc in docs])
+
 class LLamaChatPDF:
     vector_store = None
     retriever = None
@@ -42,10 +45,8 @@ class LLamaChatPDF:
 
     def ingest(self, pdf_file_path: str):
         docs = PyPDFLoader(file_path=pdf_file_path).load()
-        chunks = self.text_splitter.split_documents(docs)
-        
-        print("DEBUG: chunks", chunks)
-
+        chunks = self.text_splitter.split_documents(docs)        
+        # print("DEBUG: chunks", chunks)
         vector_store = Chroma.from_documents(documents=chunks, embedding=self.embeddings)
         self.retriever = vector_store.as_retriever(
             search_kwargs={
@@ -57,6 +58,8 @@ class LLamaChatPDF:
         docs = self.retriever.get_relevant_documents(query)
         reordering = LongContextReorder()
         reordered_docs = reordering.transform_documents(docs)
+        
+        print("DEBUG: reordered_docs", reordered_docs)
         
         documnet_prompt = PromptTemplate(
             input_variables=["page_content"],
@@ -73,17 +76,8 @@ class LLamaChatPDF:
         )
         return self.chain.run(input_documents=reordered_docs, query=query)
         
-    
-    @staticmethod
-    def format_docs(docs):
-        """Convert Documents to a single string.:"""
-        formatted = [
-            f"Article Title: {doc.metadata['title']}\nArticle Snippet: {doc.page_content}"
-            for doc in docs
-        ]
-        return "\n\n" + "\n\n".join(formatted)
-    
     def ask(self, query: str):
+        print("DEBUG: query", query)
         response = self.ingest_context(query)
         if not self.chain:
             return "Please, add a PDF document first."
