@@ -38,7 +38,7 @@ def read_and_save_file():
             st.session_state["assistant"].ingest(file_path)
         # Check file size
         file_size_mb = os.path.getsize(file_path) / (1024 * 1024)
-        st.subheader(f"File: {file_size_mb:.2f} MB")
+        
         os.remove(file_path)
 
 

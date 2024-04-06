@@ -84,9 +84,10 @@ class LLamaChatPDF:
         return "\n\n" + "\n\n".join(formatted)
     
     def ask(self, query: str):
+        response = self.ingest_context(query)
         if not self.chain:
             return "Please, add a PDF document first."
-        return self.ingest_context(query)
+        return response
 
     def clear(self):
         self.vector_store = None
