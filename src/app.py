@@ -2,9 +2,9 @@ import os
 import tempfile
 import streamlit as st
 from streamlit_chat import message
-from rag import ChatPDF
+from rag import LLamaChatPDF
 
-st.set_page_config(page_title="ChatPDF")
+st.set_page_config(page_title="Max Gheorghe")
 
 
 def display_messages():
@@ -42,9 +42,9 @@ def read_and_save_file():
 def page():
     if len(st.session_state) == 0:
         st.session_state["messages"] = []
-        st.session_state["assistant"] = ChatPDF()
+        st.session_state["assistant"] = LLamaChatPDF()
 
-    st.header("ChatPDF")
+    st.header("Maxi Gheorghe")
 
     st.subheader("Upload a document")
     st.file_uploader(
@@ -60,6 +60,8 @@ def page():
 
     display_messages()
     st.text_input("Message", key="user_input", on_change=process_input)
+    debug = LLamaChatPDF.format_docs(st.session_state["assistant"].retriever.documents)
+    st.caption(debug)
 
 
 if __name__ == "__main__":

@@ -9,13 +9,13 @@ from langchain.prompts import PromptTemplate
 from langchain.vectorstores.utils import filter_complex_metadata
 
 
-class ChatPDF:
+class LLamaChatPDF:
     vector_store = None
     retriever = None
     chain = None
 
     def __init__(self):
-        self.model = ChatOllama(model="mistral")
+        self.model = ChatOllama(model="llama2")
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100)
         self.prompt = PromptTemplate.from_template(
             """
@@ -41,7 +41,7 @@ class ChatPDF:
             search_type="similarity_score_threshold",
             search_kwargs={
                 "k": 5,
-                "score_threshold": 0.3
+                "score_threshold": 0.9
             },
         )
         
@@ -51,7 +51,16 @@ class ChatPDF:
                       | self.prompt
                       | self.model
                       | StrOutputParser())
-
+    
+    @staticmethod
+    def format_docs(docs):
+        """Convert Documents to a single string.:"""
+        formatted = [
+            f"Article Title: {doc.metadata['title']}\nArticle Snippet: {doc.page_content}"
+            for doc in docs
+        ]
+        return "\n\n" + "\n\n".join(formatted)
+    
     def ask(self, query: str):
         if not self.chain:
             return "Please, add a PDF document first."
