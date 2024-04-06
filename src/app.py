@@ -16,6 +16,12 @@ from rag import ChatPDF
 # """
 # st.markdown(page_bg, unsafe_allow_html=True)
 
+def HRista():
+    st.text("Esti o femeie independenta si plina de bani")
+
+def Teknic():
+    st.text("Esti un mascul alpha")
+
 def display_messages():
     st.subheader("Chat")
     for i, (msg, is_user) in enumerate(st.session_state["messages"]):
@@ -65,6 +71,7 @@ def page():
     
         if toggle_switch:
             st.write("Admin")
+
         else:
             st.write("User")
 
@@ -73,9 +80,13 @@ def page():
 
     if selected == "Teknic":
         st.title(f"Welcome to {selected}")
+        if toggle_switch:
+            Teknic()
         
     if selected == "HRista":
         st.title(f"Welcome to {selected}")
+        if toggle_switch:
+            HRista()
 
     st.subheader("Upload a document")
     st.file_uploader(
@@ -91,6 +102,7 @@ def page():
 
     display_messages()
     st.text_input("Message", key="user_input", on_change=process_input)
+        
 
 
 if __name__ == "__main__":
