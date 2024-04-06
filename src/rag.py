@@ -12,6 +12,8 @@ from langchain.schema.runnable import RunnablePassthrough
 from langchain.prompts import PromptTemplate
 from langchain.vectorstores.utils import filter_complex_metadata
 
+from langchain.retrievers.document_compressors import EmbeddingsFilter
+
 from langchain_community.document_transformers import (
     LongContextReorder,
 )
@@ -41,9 +43,16 @@ class LLamaChatPDF:
             template = self.prompt_template,
             input_variables = ["context", "query"]
         )
-        
+        self.compressor = EmbeddingsFilter(embeddings=OllamaEmbeddings(), k=10)
         self.embeddings = OllamaEmbeddings()
-
+        
+    def split_and_filter(self,input):
+        docs = input["docs"]
+        question = input["question"]
+        split_docs = self.splitter.split_documents(docs)
+        stateful_docs = self.compressor.compress_documents(split_docs, question)
+        return [stateful_doc for stateful_doc in stateful_docs]
+    
     def ingest(self, pdf_file_path: str):
         docs = PyPDFLoader(file_path=pdf_file_path).load()
         chunks = self.text_splitter.split_documents(docs)        
