@@ -1,13 +1,20 @@
 from langchain_community.vectorstores import Chroma
 from langchain_community.chat_models import ChatOllama
-from langchain_community.embeddings import FastEmbedEmbeddings
-from langchain.schema.output_parser import StrOutputParser
+from langchain_community.embeddings import OllamaEmbeddings
+from langchain.chains import StuffDocumentsChain,LLMChain
+
+
 from langchain_community.document_loaders import PyPDFLoader
+
+from langchain.schema.output_parser import StrOutputParser
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.prompts import PromptTemplate
 from langchain.vectorstores.utils import filter_complex_metadata
 
+from langchain_community.document_transformers import (
+    LongContextReorder,
+)
 
 class LLamaChatPDF:
     vector_store = None
@@ -17,40 +24,55 @@ class LLamaChatPDF:
     def __init__(self):
         self.model = ChatOllama(model="llama2")
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100)
-        self.prompt = PromptTemplate.from_template(
-            """
-            <s> [INST] Vous êtes un assistant pour les tâches de réponse aux questions. Utilisez les éléments de contexte suivants pour répondre à la question. 
-            Si vous ne connaissez pas la réponse, dites simplement que vous ne savez pas.. Utilisez trois phrases
-             maximum et soyez concis dans votre réponse. [/INST] </s> 
-            [INST] Question: {question} 
-            Context: {context} 
-            Answer: [/INST]
-            """
+        self.prompt_template = """Given this text extracts:
+                            -----
+                            {context}
+                            -----
+                            Please answer the following question:
+                            {query}
+                            -----
+                            And Citation: """
+                            
+        self.prompt = PromptTemplate(
+            template = self.prompt_template,
+            input_variables = ["context", "query"]
         )
+        
+        self.embeddings = OllamaEmbeddings()
 
     def ingest(self, pdf_file_path: str):
         docs = PyPDFLoader(file_path=pdf_file_path).load()
-        print("DEBUG: docs", docs)
         chunks = self.text_splitter.split_documents(docs)
-        chunks = filter_complex_metadata(chunks)
         
         print("DEBUG: chunks", chunks)
 
-        vector_store = Chroma.from_documents(documents=chunks, embedding=FastEmbedEmbeddings())
+        vector_store = Chroma.from_documents(documents=chunks, embedding=self.embeddings)
         self.retriever = vector_store.as_retriever(
-            search_type="similarity_score_threshold",
             search_kwargs={
                 "k": 5,
-                "score_threshold": 0.9
             },
         )
         
-        print("DEBUG: retriever", self.retriever)
-
-        self.chain = ({"context": self.retriever, "question": RunnablePassthrough()}
-                      | self.prompt
-                      | self.model
-                      | StrOutputParser())
+    def ingest_context(self, query):
+        docs = self.retriever.get_relevant_documents(query)
+        reordering = LongContextReorder()
+        reordered_docs = reordering.transform_documents(docs)
+        
+        documnet_prompt = PromptTemplate(
+            input_variables=["page_content"],
+            template="{page_content}"
+        )
+        
+        document_variable_name = "context"
+        
+        llm_chain = LLMChain(llm=self.model, prompt=self.prompt)
+        self.chain = StuffDocumentsChain(
+            llm_chain=llm_chain,
+            document_prompt=documnet_prompt,
+            document_variable_name=document_variable_name,
+        )
+        return self.chain.run(input_documents=reordered_docs, query=query)
+        
     
     @staticmethod
     def format_docs(docs):
@@ -64,8 +86,7 @@ class LLamaChatPDF:
     def ask(self, query: str):
         if not self.chain:
             return "Please, add a PDF document first."
-
-        return self.chain.invoke(query)
+        return self.ingest_context(query)
 
     def clear(self):
         self.vector_store = None

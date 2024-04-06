@@ -8,53 +8,54 @@ from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAI
 
 from langchain_community.chat_models import ChatOllama
+from langchain_community.embeddings import OllamaEmbeddings
 
 from langchain_community.document_loaders import PyPDFLoader
 
-# Get embeddings.
-embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+from langchain.chains import create_citation_fuzzy_match_chain
 
-loader = PyPDFLoader("docs/pdf-test.pdf")
+
+# Get embeddings.
+# embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+embeddings = OllamaEmbeddings(model="llama2:7b")
+
+loader = PyPDFLoader("docs/docker_cheatsheet.pdf")
 pages = loader.load_and_split()
 
+# retriever = Chroma.from_documents(documents=pages, embedding=embeddings).as_retriever(
+#     search_kwargs={"k": 3}
+# )
 texts = [
-    "Basquetball is a great sport.",
-    "Fly me to the moon is one of my favourite songs.",
-    "The Celtics are my favourite team.",
-    "This is a document about the Boston Celtics",
-    "I simply love going to the movies",
-    "The Boston Celtics won the game by 20 points",
-    "This is just a random text.",
-    "Elden Ring is one of the best games in the last 15 years.",
-    "L. Kornet is one of the best Celtics players.",
-    "Larry Bird was an iconic NBA player.",
+    """
+    isfgigsiughsiuhgseghsdohgiusdvhsdhgsbvisdsdbuivbsdyihoushgbsevusgyvbsdbvbsdiuvbsybvisdbuvbsdnvsdbvinsdkvbsdlnvksdbvlnsdkvbkjsdbvsdvsdbvsdbvsdbvsdbhbsnvkjsdbivjsdbvsdvkjbsdvsdkbvksbvjhsbdkjvnsbvjsd vhsdvljsdbiusndlvbnvsldjbkjsd snlsdbvsdvndnvsd,sdvkbkjsbuhewbiubsdkgievlbsdibgoweuvbsoibgusbvsvbsbvubsoevbsoibvionesbvbsjkbgsjbvkjsd vkjsjbdvkjsdkj nnskjdn jn kjn sn s n n oien oien oisn gseng oesn gois ngs fopwemfiwejifwoifiuewn   uw we ub rwb rw j eron o owpgiow gwoi ion   ' ' ' ' ' ; ' ; [ ; eowgmiwgwngiwngwegdinsogoih  I am a happy little man that likes to jump off tall buildings. I enjoy it very much. wiubewubguwugwuuguigh4iwhgunweyugwen u rqui r qwuu qwurhuhr qhwurh ouqhoirhqo roib wqonr oiqwbr iqwbroqw ihqwi rjoiqh riw qboinr quriuwqr oinqorn wqoinoi q wq '// qw mq wr/ qpr [q??, !vcueqfinkdmmawknd!@#$ knroi nwui$^UO u2gr6f$^Iomu b2u3ibuiuif ew7&&&& 9()
+    """
 ]
-retriever = Chroma.from_documents(documents=pages, embedding=embeddings).as_retriever(
-    search_kwargs={"k": 3}
+
+retriever = Chroma.from_texts(texts, embedding=embeddings).as_retriever(
+    search_kwargs={"k": 10}
 )
 
-query = "Poti sa imi zici care sunt conflictele din acest document?"
+query = "Does the cheatsheet contain information about Docker?"
 
 # Get relevant documents ordered by relevance score
 docs = retriever.get_relevant_documents(query)
-# print(docs)
 
 reordering = LongContextReorder()
 reordered_docs = reordering.transform_documents(docs)
-
-# print(reordered_docs)
 
 document_prompt = PromptTemplate(
     input_variables=["page_content"], template="{page_content}"
 )
 document_variable_name = "context"
+
 llm = ChatOllama(model="llama2")
+
 stuff_prompt_override = """Given this text extracts:
------
-{context}
------
-Please answer the following question:
-{query}"""
+                            -----
+                            {context}
+                            -----
+                            Please answer the following question:
+                            {query}"""
 
 prompt = PromptTemplate(
     template=stuff_prompt_override, input_variables=["context", "query"]
@@ -67,6 +68,24 @@ chain = StuffDocumentsChain(
     document_prompt=document_prompt,
     document_variable_name=document_variable_name,
 )
-output = chain.run(input_documents=reordered_docs, query=query)
+# print(reordered_docs)
 
-print(output)
+output = chain.run(input_documents=reordered_docs, query=query)
+# print("--------------------")
+# print(output)
+# print("--------------------")
+# print(citation)
+
+retriever = Chroma.from_texts(texts, embedding=embeddings).as_retriever(
+    search_kwargs={"k": 10}
+)
+
+chain = (
+    {"context": retriever, "question": RunnablePassthrough()}
+)
+
+query = "Does the cheatsheet contain information about Docker?"
+
+docs = retriever.invoke(query)
+
+print(docs)

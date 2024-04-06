@@ -36,6 +36,9 @@ def read_and_save_file():
 
         with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
             st.session_state["assistant"].ingest(file_path)
+        # Check file size
+        file_size_mb = os.path.getsize(file_path) / (1024 * 1024)
+        st.subheader(f"File: {file_size_mb:.2f} MB")
         os.remove(file_path)
 
 
@@ -60,8 +63,6 @@ def page():
 
     display_messages()
     st.text_input("Message", key="user_input", on_change=process_input)
-    debug = LLamaChatPDF.format_docs(st.session_state["assistant"].retriever.documents)
-    st.caption(debug)
 
 
 if __name__ == "__main__":
