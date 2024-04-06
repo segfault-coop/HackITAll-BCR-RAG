@@ -2,10 +2,25 @@ import os
 import tempfile
 import streamlit as st
 from streamlit_chat import message
+from streamlit_option_menu import option_menu
 from rag import ChatPDF
 
-st.set_page_config(page_title="ChatPDF")
+# st.set_page_config(page_title="ChatPDF")
+# page_bg="""
+# <style>
+# [data-testid = "stAppViewContainer"]{
+# background-color : #3364FF;
+# text-color : #FFFFFF;
+# }
+# <style>
+# """
+# st.markdown(page_bg, unsafe_allow_html=True)
 
+def HRista():
+    st.text("Esti o femeie independenta si plina de bani")
+
+def Teknic():
+    st.text("Esti un mascul alpha")
 
 def display_messages():
     st.subheader("Chat")
@@ -44,7 +59,34 @@ def page():
         st.session_state["messages"] = []
         st.session_state["assistant"] = ChatPDF()
 
-    st.header("ChatPDF")
+    st.header("Gheorghe") 
+    
+    with st.sidebar:
+        selected = option_menu(
+            menu_title = "Gheorghe",
+            options = ["Gicu", "Teknic", "HRista"]
+        )
+        toggle_switch = st.checkbox("Do you have rights?")
+
+    
+        if toggle_switch:
+            st.write("Admin")
+
+        else:
+            st.write("User")
+
+    if selected == "Gicu":
+        st.title(f"Welcome to {selected}")
+
+    if selected == "Teknic":
+        st.title(f"Welcome to {selected}")
+        if toggle_switch:
+            Teknic()
+        
+    if selected == "HRista":
+        st.title(f"Welcome to {selected}")
+        if toggle_switch:
+            HRista()
 
     st.subheader("Upload a document")
     st.file_uploader(
@@ -60,6 +102,7 @@ def page():
 
     display_messages()
     st.text_input("Message", key="user_input", on_change=process_input)
+        
 
 
 if __name__ == "__main__":
