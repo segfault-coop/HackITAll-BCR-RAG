@@ -17,10 +17,10 @@ from rag import ChatPDF
 # st.markdown(page_bg, unsafe_allow_html=True)
 
 def HRista():
-    st.text("Esti o femeie independenta si plina de bani")
+    st.text(" ")
 
 def Teknic():
-    st.text("Esti un mascul alpha")
+    st.subheader("Please improve me with new knowledge")
     st.file_uploader(
         "Upload document",
         type=["pdf"],
@@ -31,7 +31,7 @@ def Teknic():
     )
 
 def display_messages():
-    st.subheader("Chat")
+    
     for i, (msg, is_user) in enumerate(st.session_state["messages"]):
         message(msg, is_user=is_user, key=str(i))
     st.session_state["thinking_spinner"] = st.empty()
@@ -66,22 +66,27 @@ def page():
     if len(st.session_state) == 0:
         st.session_state["messages"] = []
         st.session_state["assistant"] = ChatPDF()
-
-    st.header("Gheorghe") 
+    svg_path="svg/logo-no-background.svg"
+    # st.title("Gheorghe") 
+    st.image(svg_path,width = 400)
+    options = ["Gicu", "Teknic"]
     
     with st.sidebar:
-        selected = option_menu(
-            menu_title = "Gheorghe",
-            options = ["Gicu", "Teknic", "HRista"]
-        )
         toggle_switch = st.checkbox("Do you have rights?")
 
     
         if toggle_switch:
             st.write("Admin")
+            options.append("HRista")
 
         else:
             st.write("User")
+        
+        selected = option_menu(
+            menu_title = "Gheorghe",
+            options = options
+        )
+        
 
     if selected == "Gicu":
         st.title(f"Welcome to {selected}")
@@ -95,8 +100,7 @@ def page():
         st.title(f"Welcome to {selected}")
         if toggle_switch:
             HRista()
-
-    st.subheader("Upload a document")
+    st.subheader(f"Explore what {selected} has to offer")
     
 
     st.session_state["ingestion_spinner"] = st.empty()
