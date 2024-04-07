@@ -66,8 +66,9 @@ def page():
     if len(st.session_state) == 0:
         st.session_state["messages"] = []
         st.session_state["assistant"] = ChatPDF()
-
-    st.title("Gheorghe") 
+    svg_path="svg\logo-no-background.svg"
+    # st.title("Gheorghe") 
+    st.image(svg_path,width = 400)
     options = ["Gicu", "Teknic"]
     
     with st.sidebar:
@@ -99,7 +100,7 @@ def page():
         st.title(f"Welcome to {selected}")
         if toggle_switch:
             HRista()
-    st.subheader(f"Explore the ways of {selected}")
+    st.subheader(f"Explore what {selected} has to offer")
     
 
     st.session_state["ingestion_spinner"] = st.empty()
