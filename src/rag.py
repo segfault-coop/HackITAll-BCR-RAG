@@ -184,54 +184,54 @@ class ChatPDF:
         
         feedback()
         
-        return self.conversational_rag_chain.invoke(
-                        {"input": query},
-                        config={
-                            "configurable": {"session_id": "abc123"}
-                        },
-                    )["answer"]
-
-        #         result = self.conversational_rag_chain.invoke(
+        # return self.conversational_rag_chain.invoke(
         #                 {"input": query},
         #                 config={
         #                     "configurable": {"session_id": "abc123"}
         #                 },
-        #             )
-        
-        # ctx = result["context"]
-        # def pretty_print_docs(docs):
-        #     return f"\n{'-' * 100}\n".join(
-        #             [f"Document {i+1}:\n\n" + d.page_content for i, d in enumerate(docs)]
-        #         )
-        # def pretty_print_doc(doc):
-        #     return f'Document:\n\n ' + doc.page_content
-        
-        # ctx_str = pretty_print_docs(ctx)
+        #             )["answer"]
 
-        # docs = self.retriever.get_relevant_documents(query)
-        # reordering = LongContextReorder()
-        # reordered_docs = reordering.transform_documents(docs)
+        result = self.conversational_rag_chain.invoke(
+                        {"input": query},
+                        config={
+                            "configurable": {"session_id": "abc123"}
+                        },
+                    )
         
-        # ctx_str = pretty_print_doc(reordered_docs[0])
+        ctx = result["context"]
+        def pretty_print_docs(docs):
+            return f"\n{'-' * 100}\n".join(
+                    [f"Document {i+1}:\n\n" + d.page_content for i, d in enumerate(docs)]
+                )
+        def pretty_print_doc(doc):
+            return f'Document:\n\n ' + doc.page_content
+        
+        ctx_str = pretty_print_docs(ctx)
+
+        docs = self.retriever.get_relevant_documents(query)
+        reordering = LongContextReorder()
+        reordered_docs = reordering.transform_documents(docs)
+        
+        ctx_str = pretty_print_doc(reordered_docs[0])
             
-        # QA_input = {
-        #     'question': query,
-        #     'context': ctx_str
-        # }
+        QA_input = {
+            'question': query,
+            'context': ctx_str
+        }
 
-        # res = nlp(QA_input)
-        # print(res)
-        # offset = 5
+        res = nlp(QA_input)
+        print(res)
+        offset = 5
         
-        # start = res['start'] - offset
-        # end = res['end'] + offset
-        # citation = ctx_str[start:end]
-        # print(citation)
-        # final_result = f"""
-        # {result["answer"]}
-        # Citations:
-        # {citation}
-        # """
+        start = res['start'] - offset
+        end = res['end'] + offset
+        citation = ctx_str[start:end]
+        print(citation)
+        final_result = f"""
+        {result["answer"]}
+        Citations:
+        {citation}
+        """
         return final_result
 
     def clear(self):
