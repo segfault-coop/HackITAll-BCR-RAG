@@ -77,7 +77,7 @@ def page():
     
         if toggle_switch:
             st.write("Admin")
-            options.append("HRista")
+            # options.append("HRista")
 
         else:
             st.write("User")
