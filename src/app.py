@@ -66,7 +66,7 @@ def page():
     if len(st.session_state) == 0:
         st.session_state["messages"] = []
         st.session_state["assistant"] = ChatPDF()
-    svg_path="svg\logo-no-background.svg"
+    svg_path="svg/logo-no-background.svg"
     # st.title("Gheorghe") 
     st.image(svg_path,width = 400)
     options = ["Gicu", "Teknic"]
