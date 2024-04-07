@@ -224,7 +224,7 @@ class ChatPDF:
         offset = 5
         
         start = res['start'] - offset
-        end = res['end'] + offset
+        end = res['end'] + offset + 100
         citation = ctx_str[start:end]
         print(citation)
         final_result = f"""

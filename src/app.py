@@ -69,7 +69,7 @@ def page():
     svg_path="svg/logo-no-background.svg"
     # st.title("Gheorghe") 
     st.image(svg_path,width = 400)
-    options = ["Gicu", "Teknic"]
+    options = ["General", "Teknic"]
     
     with st.sidebar:
         toggle_switch = st.checkbox("Do you have rights?")
@@ -88,7 +88,7 @@ def page():
         )
         
 
-    if selected == "Gicu":
+    if selected == "General":
         st.title(f"Welcome to {selected}")
 
     if selected == "Teknic":
