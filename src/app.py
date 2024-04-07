@@ -16,9 +16,6 @@ from rag import ChatPDF
 # """
 # st.markdown(page_bg, unsafe_allow_html=True)
 
-def HRista():
-    st.text(" ")
-
 def Teknic():
     st.subheader("Please improve me with new knowledge")
     st.file_uploader(
